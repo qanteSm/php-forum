@@ -2,7 +2,7 @@
 session_start();
 
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
-    header("Location: main.php");
+    header("Location: index.php");
     exit(); 
 }
 
@@ -33,7 +33,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link"  href="main.php">Ana Sayfa</a>
+          <a class="nav-link"  href="index.php">Ana Sayfa</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="giris.php">Giriş</a>

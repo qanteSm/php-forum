@@ -24,12 +24,12 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
 <li class="nav-item">
-                <a class="nav-link active" href="main.php">Ana Sayfa</a>
+                <a class="nav-link active" href="index.php">Ana Sayfa</a>
               </li>              <li class="nav-item">
                 <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="profil.php">' . $username . '</a>
+                <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
               </li>
             </ul>
           </div>
@@ -52,7 +52,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link active"  href="main.php">Ana Sayfa</a>
+          <a class="nav-link active"  href="index.php">Ana Sayfa</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="giris.php">Giriş</a>
@@ -149,8 +149,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                         $yayinlanmaZamani = "$yil yıl önce";
                     }
                     
-                    // Kullanıcı adı sorgulaması
-                    $yazarId = $row["yazar"]; // Post'un yazar ID'sini al
+                    $yazarId = $row["yazar"]; 
                     $sqlKullaniciAdi = "SELECT username FROM accounts WHERE id = ?";
                     $stmtKullaniciAdi = $conn->prepare($sqlKullaniciAdi);
                     $stmtKullaniciAdi->bind_param("i", $yazarId);
@@ -159,9 +158,9 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
 
                     if ($resultKullaniciAdi->num_rows > 0) {
                         $rowKullaniciAdi = $resultKullaniciAdi->fetch_assoc();
-                        $username = $rowKullaniciAdi['username']; // Kullanıcı adını al
+                        $username = $rowKullaniciAdi['username']; 
                     } else {
-                        $username = "Bilinmeyen Kullanıcı"; // Kullanıcı bulunamadıysa
+                        $username = "Bilinmeyen Kullanıcı"; 
                     }
 
                     $stmtKullaniciAdi->close();

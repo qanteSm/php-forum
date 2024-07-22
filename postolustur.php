@@ -30,7 +30,7 @@ if (!isset($_SESSION['entered']) || $_SESSION['entered'] !== true) {
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
 <li class="nav-item">
-                <a class="nav-link active" href="main.php">Ana Sayfa</a>
+                <a class="nav-link active" href="index.php">Ana Sayfa</a>
               </li>              <li class="nav-item">
                 <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
               </li>

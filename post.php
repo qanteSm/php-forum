@@ -34,7 +34,7 @@ $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
 
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     $statusbar .= '<li class="nav-item">
-                        <a class="nav-link active" href="main.php">Ana Sayfa</a>
+                        <a class="nav-link active" href="index.php">Ana Sayfa</a>
                     </li>                            
                     <li class="nav-item">
                         <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
@@ -44,7 +44,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                     </li>';
 } else {
     $statusbar .= '<li class="nav-item">
-                        <a class="nav-link active"  href="main.php">Ana Sayfa</a>
+                        <a class="nav-link active"  href="index.php">Ana Sayfa</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="giris.php">Giriş</a>
@@ -172,7 +172,7 @@ $statusbar .= '</ul>
         
                         echo '</p> 
                             <br>
-                            <div class="text-sm op-5">'; // This div seems unnecessary and can be removed
+                            <div class="text-sm op-5">';
                         echo '</div>
                         </div>
                     </div>

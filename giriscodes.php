@@ -22,14 +22,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("Location: giris.php?error=wrongpass");
             }else{
                 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
-                    header("Location: main.php");
+                    header("Location: index.php");
                     exit(); 
                 } else {
                     header("Location: giris.php?success=true");
                     session_start();
                     $_SESSION["entered"] = true;
                     $_SESSION["id"] = $row['id'];
-                    header("Location: main.php");
+                    header("Location: index.php");
                 }
             }
         } else {

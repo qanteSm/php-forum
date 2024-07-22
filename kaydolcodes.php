@@ -30,11 +30,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             } else {
                 $salt = generateRandomString(10);
                 $hashedpw = md5($salt . $password);
-                $sql = "INSERT INTO accounts (username, pass,salt,rank,profil_fotografi) VALUES (?, ?, ?, ?, ?)";
+                $sql = "INSERT INTO accounts (username, pass,salt,rank,profil_fotografi,description) VALUES (?, ?, ?, ?, ?,?)";
                 $stmt = $conn->prepare($sql);
                 $foto = "fotoyok.jpg";
                 $rank = 0;
-                $stmt->bind_param("sssis", $username, $hashedpw, $salt, $rank,$foto);
+                $desc = "Bana merhaba de!";
+                $stmt->bind_param("sssis", $username, $hashedpw, $salt, $rank,$foto,$desc);
                 if ($stmt->execute()) {
                     header("Location: kaydol.php?success=true");
                 } else {

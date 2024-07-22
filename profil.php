@@ -31,7 +31,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
 <li class="nav-item">
-                <a class="nav-link active" href="main.php">Ana Sayfa</a>
+                <a class="nav-link active" href="index.php">Ana Sayfa</a>
               </li>              <li class="nav-item">
                 <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
               </li>
@@ -110,6 +110,10 @@ $conn->close();
     <title>Profil Ayarları</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+        background: #eee;
+        color: #708090;
+        }
         .profil-fotografi {
             width: 150px;
             height: 150px;
