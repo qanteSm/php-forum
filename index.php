@@ -71,7 +71,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>bs5 forum list - Bootdey.com</title>
+<title>Ferwle's Forum</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style type="text/css">
@@ -128,6 +128,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
             if ($result->num_rows > 0) {
                 $ilkPost = true; 
                 while ($row = $result->fetch_assoc()) {
+                    $postId = $row["id"]; 
+
                     $gecikenSaniye = round(time() - ($row["tarih"] / 1000));
                     $dakika = round($gecikenSaniye / 60);
                     $saat = round($dakika / 60);
@@ -159,11 +161,29 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                     if ($resultKullaniciAdi->num_rows > 0) {
                         $rowKullaniciAdi = $resultKullaniciAdi->fetch_assoc();
                         $username = $rowKullaniciAdi['username']; 
+                        $girenadaminid = $rowKullaniciAdi['username']; 
                     } else {
                         $username = "Bilinmeyen Kullanıcı"; 
                     }
 
                     $stmtKullaniciAdi->close();
+
+                    $sqlGoruntuleme = "SELECT DISTINCT visitor_id FROM post_visits WHERE visited_post_id = ?";
+                    $stmtGoruntuleme = $conn->prepare($sqlGoruntuleme);
+                    $stmtGoruntuleme->bind_param("i", $postId);
+                    $stmtGoruntuleme->execute();
+                    $resultGoruntuleme = $stmtGoruntuleme->get_result();
+                    $goruntulemeSayisi = $resultGoruntuleme->num_rows;
+                    $stmtGoruntuleme->close();
+
+                    $sqlYorumSayisi = "SELECT COUNT(*) AS yorum_sayisi FROM replys WHERE post_id = ?";
+                    $stmtYorumSayisi = $conn->prepare($sqlYorumSayisi);
+                    $stmtYorumSayisi->bind_param("i", $postId);
+                    $stmtYorumSayisi->execute();
+                    $resultYorumSayisi = $stmtYorumSayisi->get_result();
+                    $rowYorumSayisi = $resultYorumSayisi->fetch_assoc();
+                    $yorumSayisi = $rowYorumSayisi['yorum_sayisi'];
+                    $stmtYorumSayisi->close();
 
                     if ($ilkPost) {
                         echo '<div class="col-lg-12"> 
@@ -174,11 +194,11 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                                 <a href="post.php?post='.$row["id"].'" class="text-primary">' . $row["baslik"] . '</a>
                                             </h5>
                                             <div class="text-sm op-5"><a class="text-black" href="#">' . $row["icerik"] . '</a></div>
-                                            <p class="text-sm"><span class="op-6">Posted</span> <a class="text-black" href="#">' . $yayinlanmaZamani . '</a> <span class="op-6">ago by</span> <a class="text-black" href="#">' . $username . '</a></p>
+                                            <p class="text-sm"><span class="op-6">Posted</span> <a class="text-black" href="#">' . $yayinlanmaZamani . '</a> <span class="op-6">ago by</span> <a class="text-black" href="userprofile.php?id='.$yazarId.'">' . $username . '</a></p>
                                             <div class="text-sm op-5">';
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
-                            echo '<a class="text-black mr-2" href="#">  #' . trim($etiket) . '</a>';
+                            echo '<a class="text-black mr-2" href="#">  <strong>#' . trim($etiket) . '</strong></a>'; 
                         }
 
                         echo '</div>
@@ -186,8 +206,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                         <div class="col-md-4 op-7">
                                             <div class="row text-center op-7">
                                                 <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
-                                                <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $row["yorumlar"] . ' Replys</span> </div>
-                                                <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $row["goruntulemeler"] . ' Views</span> </div>
+                                                <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
+                                                <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div> 
                                             </div>
                                         </div>
                                     </div>
@@ -203,7 +223,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                                 <a href="post.php?post='.$row["id"].'" class="text-primary">' . $row["baslik"] . '</a>
                                             </h5>
                                             <div class="text-sm op-5"><a class="text-black" href="#">' . $row["icerik"] . '</a></div>
-                                            <p class="text-sm"><span class="op-6">Posted</span> <a class="text-black" href="#">' . $yayinlanmaZamani . '</a> <span class="op-6">ago by</span> <a class="text-black" href="#">' . $username . '</a></p>
+                                            <p class="text-sm"><span class="op-6">Posted</span> <a class="text-black" href="#">' . $yayinlanmaZamani . '</a> <span class="op-6">ago by</span> <a class="text-black" href="userprofile.php?id='.$yazarId.'">' . $username . '</a></p>
                                             <div class="text-sm op-5">';
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
@@ -215,8 +235,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                         <div class="col-md-4 op-7">
                                             <div class="row text-center op-7">
                                                 <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
-                                                <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $row["yorumlar"] . ' Replys</span> </div>
-                                                <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $row["goruntulemeler"] . ' Views</span> </div>
+                                                <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
+                                                <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div>
                                             </div>
                                         </div>
                                     </div>
@@ -231,7 +251,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
             echo "Hata: " . $conn->error;
         }
 
-        $conn->close();
+        
         ?>
       </div> 
     </div>
@@ -240,20 +260,17 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
             <div class="item">
                 <div class="card mb-2">
                     <div class="card-body">
-                        <h5 class="card-title">About</h5>
-                        <p class="card-text">Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc.</p>
+                        <h5 class="card-title">Hakkında</h5>
+                        <p class="card-text">2024 yılında deneme amaçlı açılmış ve geliştirmeye devam edilen bir forum sitesi!</p>
                     </div>
                 </div>
             </div>
             <div class="item">
                 <div class="card mb-2">
                     <div class="card-body">
-                        <h5 class="card-title">Related</h5>
+                        <h5 class="card-title">İlgili</h5>
                         <div class="card-text">
-                            <a href="#" class="d-block mb-2">Sapien eget</a> 
-                            <a href="#" class="d-block mb-2">Condimentum</a>
-                            <a href="#" class="d-block mb-2">Etiam rhoncus</a>
-                            <a href="#" class="d-block">Sem quam</a>
+                            <a href="https://alibuyuk.net/" class="d-block mb-2">Ferwle</a> 
                         </div>
                     </div>
                 </div>
@@ -261,10 +278,37 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
             <div class="item">
                 <div class="card mb-2">
                     <div class="card-body">
-                        <h5 class="card-title">Stats</h5>
-                        <p class="card-text"><b>Total members:</b> 983,900</p>
-                        <p class="card-text"><b>Posts:</b> 1,290,898</p>
-                        <p class="card-text"><b>Comments:</b> 83,123</p>
+                        <h5 class="card-title">İstatistikler</h5>
+                        <p class="card-text"><b>Kullanıcı Sayısı:</b> 
+                        <?php 
+                            $sql = "SELECT COUNT(*) FROM accounts";
+                            $result = $conn->query($sql);
+                            $row = $result->fetch_assoc();
+                            if ($result->num_rows > 0) {
+                                echo $row['COUNT(*)'];
+                                }
+                        ?>
+                        </p>
+                        <p class="card-text"><b>Postlar:</b> 
+                        <?php 
+                            $sql = "SELECT COUNT(*) FROM posts";
+                            $result = $conn->query($sql);
+                            $row = $result->fetch_assoc();
+                            if ($result->num_rows > 0) {
+                                echo $row['COUNT(*)'];
+                                }
+                        ?>
+                        </p>
+                        <p class="card-text"><b>Yorumlar:</b> 
+                        <?php 
+                            $sql = "SELECT COUNT(*) FROM replys";
+                            $result = $conn->query($sql);
+                            $row = $result->fetch_assoc();
+                            if ($result->num_rows > 0) {
+                            echo $row['COUNT(*)'];
+                            }
+                        ?>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -280,7 +324,9 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     </div>
   </div>
 </div>
-
+<?php 
+    $conn->close();
+?>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
 </body>

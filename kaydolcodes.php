@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $foto = "fotoyok.jpg";
                 $rank = 0;
                 $desc = "Bana merhaba de!";
-                $stmt->bind_param("sssis", $username, $hashedpw, $salt, $rank,$foto,$desc);
+                $stmt->bind_param("sssiss", $username, $hashedpw, $salt, $rank,$foto,$desc);
                 if ($stmt->execute()) {
                     header("Location: kaydol.php?success=true");
                 } else {

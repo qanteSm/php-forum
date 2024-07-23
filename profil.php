@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -8,11 +7,12 @@ if (!isset($_SESSION['entered']) || $_SESSION['entered'] !== true) {
     header("Location: giris.php"); 
     exit();
 }
+
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     $userId = $_SESSION['id'];
 
     require_once "modules/mysqlconn.php";
-    $sql = "SELECT username FROM accounts WHERE id = ?";
+    $sql = "SELECT username, description FROM accounts WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $userId);
     $stmt->execute();
@@ -21,6 +21,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         $username = htmlspecialchars($row['username']);
+        $description = htmlspecialchars($row['description']);
         $welcomeMessage = "Welcome, " . $username . "!";
         $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
@@ -30,13 +31,14 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-<li class="nav-item">
+              <li class="nav-item">
                 <a class="nav-link active" href="index.php">Ana Sayfa</a>
-              </li>              <li class="nav-item">
+              </li>
+              <li class="nav-item">
                 <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="profil.php">' . $username . '</a>
+                <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
               </li>
             </ul>
           </div>
@@ -50,6 +52,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
 
     $stmt->close();
 }
+
 $userId = $_SESSION['id'];
 $profilFotosu = "fotoyok.jpg"; 
 
@@ -101,6 +104,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['profilFotografi'])) {
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['description'])) {
+    $yeniAciklama = trim($_POST['description']);
+
+    if (strlen($yeniAciklama) <= 250) {
+        $sql = "UPDATE accounts SET description = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("si", $yeniAciklama, $userId);
+
+        if ($stmt->execute()) {
+            $description = $yeniAciklama;
+            $aciklamaGuncellemeMesaji = "Profil açıklamanız başarıyla güncellendi.";
+        } else {
+            $aciklamaGuncellemeHatasi = "Açıklama güncellenirken bir hata oluştu: " . $conn->error;
+        }
+        $stmt->close();
+    } else {
+        $aciklamaGuncellemeHatasi = "Açıklama 250 karakterden fazla olamaz.";
+    }
+}
+
 $conn->close();
 ?>
 
@@ -111,8 +134,8 @@ $conn->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-        background: #eee;
-        color: #708090;
+            background: #eee;
+            color: #708090;
         }
         .profil-fotografi {
             width: 150px;
@@ -128,15 +151,14 @@ $conn->close();
     </style>
 </head>
 <body>
-<?php echo $statusbar; ?>
+    <?php echo $statusbar; ?>
     <div class="container mt-5">
-    <h2>Profil Ayarları</h2>
+        <h2>Profil Ayarları</h2>
         <div class="row">
             <div class="col-md-4">
                 <div class="ayarlar-karti">
                     <img src="<?php echo "uploads/profil-fotograflari/" . $profilFotosu; ?>" alt="Profil Fotoğrafı" class="profil-fotografi">
                     <br>
-
                     <form action="profil.php" method="post" enctype="multipart/form-data">
                         <input type="file" name="profilFotografi" id="profilFotografi" class="form-control mt-3">
                         <button type="submit" class="btn btn-primary mt-2">Resmi Değiştir</button>
@@ -147,6 +169,20 @@ $conn->close();
                     ?> 
                 </div>
             </div>
+            <div class="col-md-8">
+                <div class="ayarlar-karti">
+                    <h3>Profil Açıklaması</h3>
+                    <form action="profil.php" method="post">
+                        <textarea name="description" id="description" class="form-control" rows="4"><?php echo $description; ?></textarea>
+                        <button type="submit" class="btn btn-primary mt-2">Güncelle</button>
+                    </form>
+                    <?php 
+                        if(isset($aciklamaGuncellemeHatasi)) echo '<p style="color:red;">'.$aciklamaGuncellemeHatasi.'</p>';
+                        if(isset($aciklamaGuncellemeMesaji)) echo '<p style="color:green;">'.$aciklamaGuncellemeMesaji.'</p>';
+                    ?> 
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

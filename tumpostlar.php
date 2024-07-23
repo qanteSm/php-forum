@@ -31,7 +31,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                 <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="profil.php">' . $username . '</a>
+                <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
               </li>
             </ul>
           </div>
@@ -140,6 +140,22 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                 } else {
                     $yayinlanmaZamani = "$yil yıl önce";
                 }
+                $sqlGoruntuleme = "SELECT DISTINCT visitor_id FROM post_visits WHERE visited_post_id = ?";
+                    $stmtGoruntuleme = $conn->prepare($sqlGoruntuleme);
+                    $stmtGoruntuleme->bind_param("i", $row["id"]);
+                    $stmtGoruntuleme->execute();
+                    $resultGoruntuleme = $stmtGoruntuleme->get_result();
+                    $goruntulemeSayisi = $resultGoruntuleme->num_rows;
+                    $stmtGoruntuleme->close();
+
+                    $sqlYorumSayisi = "SELECT COUNT(*) AS yorum_sayisi FROM replys WHERE post_id = ?";
+                    $stmtYorumSayisi = $conn->prepare($sqlYorumSayisi);
+                    $stmtYorumSayisi->bind_param("i", $row["id"]);
+                    $stmtYorumSayisi->execute();
+                    $resultYorumSayisi = $stmtYorumSayisi->get_result();
+                    $rowYorumSayisi = $resultYorumSayisi->fetch_assoc();
+                    $yorumSayisi = $rowYorumSayisi['yorum_sayisi'];
+                    $stmtYorumSayisi->close();
                 echo '<div class="col-lg-12">
                         <div class="card row-hover pos-relative py-3 px-3 mb-3 border-warning border-top-0 border-right-0 border-bottom-0 rounded-0">
                             <div class="row align-items-center">
@@ -160,8 +176,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                 <div class="col-md-4 op-7">
                                     <div class="row text-center op-7">
                                         <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
-                                        <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $row["yorumlar"] . ' Replys</span> </div>
-                                        <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $row["goruntulemeler"] . ' Views</span> </div>
+                                        <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
+                                        <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div>
                                     </div>
                                 </div>
                             </div>

@@ -34,8 +34,9 @@ if (!isset($_SESSION['entered']) || $_SESSION['entered'] !== true) {
               </li>              <li class="nav-item">
                 <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
               </li>
+              
               <li class="nav-item">
-                <a class="nav-link" href="profil.php">' . $username . '</a>
+                <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
               </li>
             </ul>
           </div>
@@ -89,7 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->bind_param("sssii", $baslik, $icerik, $etiketler, $userId, $simdikiZaman);
 
         if ($stmt->execute()) {
-            $basariMesaji = "Forum başarıyla oluşturuldu! Etiketler: ";
+            $yeniPostId = $conn->insert_id;
+            header("Location: post.php?post=".$yeniPostId."&status=success");
+            $basariMesaji = "Forum başarıyla oluşturuldu!";
             $baslik = "";
             $icerik = "";
             $etiketler = "";

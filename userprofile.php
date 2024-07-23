@@ -2,6 +2,7 @@
 session_start();
 
 require_once "modules/mysqlconn.php";
+global $conn;
 
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     $userId = $_SESSION['id'];
@@ -43,8 +44,9 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                         <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="profil.php">' . $username . '</a>
+                        <a class="nav-link" href="userprofile.php?id='.$_SESSION['id'].'">' . $username . '</a>
                     </li>';
+                    
 } else {
     $statusbar .= '<li class="nav-item">
                         <a class="nav-link active"  href="index.php">Ana Sayfa</a>
@@ -79,7 +81,7 @@ if (!empty($targetUsername)) {
             $stmt->execute();
             $stmt->close();
         }
-        $profileContent = getUserProfileContent($row, $userId); 
+        $profileContent = getUserProfileContent($row, $userId, $conn); 
     } else {
         $profileContent = '<div class="container py-5">
             <div class="row">
@@ -108,7 +110,7 @@ if (!empty($targetUsername)) {
             $stmt->execute();
             $stmt->close();
         }
-        $profileContent = getUserProfileContent($row, $userId); 
+        $profileContent = getUserProfileContent($row, $userId, $conn); 
     } else {
         $profileContent = '<div class="container py-5">
             <div class="row">
@@ -130,7 +132,8 @@ if (!empty($targetUsername)) {
     </div>';
 }
 
-function getUserProfileContent($row, $userId) {
+function getUserProfileContent($row, $userId, $conn) {
+    global $recentVisitsHTML;
     $profileButton = '';
     $followButton = '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary">Follow</button>';
     $messageButton = '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-outline-primary ms-1">Message</button>';
@@ -140,6 +143,63 @@ function getUserProfileContent($row, $userId) {
         $followButton = '';
         $messageButton = '';
     }
+
+    $sql = "SELECT v.visit_time, a.username, a.profil_fotografi, v.visitor_id 
+        FROM user_visits v
+        JOIN accounts a ON v.visitor_id = a.id
+        WHERE v.visited_user_id = ?
+        GROUP BY v.visitor_id
+        ORDER BY MAX(v.visit_time) DESC
+        LIMIT 4";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $row['id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $recentVisits = [];
+    $visitedUserIds = [];
+    while ($visitRow = $result->fetch_assoc()) {
+        if (!in_array($visitRow['visitor_id'], $visitedUserIds)) {
+            $recentVisits[] = $visitRow;
+            $visitedUserIds[] = $visitRow['visitor_id'];
+        }
+    }
+    $stmt->close();
+
+    $recentVisitsHTML = '<div class="bg-light rounded-3 p-3 mt-3">';
+
+    if (!empty($recentVisits)) {
+        $recentVisitsHTML .= '<p class="mb-0">Son Ziyaret Edenler</p>';
+        $recentVisitsHTML .= '<div class="d-flex flex-wrap">'; 
+
+        foreach ($recentVisits as $visit) {
+            $visitTime = date("d-m-Y H:i:s", $visit['visit_time'] / 1000);
+
+            $visitorSql = "SELECT username, profil_fotografi FROM accounts WHERE id = ?";
+            $visitorStmt = $conn->prepare($visitorSql);
+            $visitorStmt->bind_param("i", $visit['visitor_id']);
+            $visitorStmt->execute();
+            $visitorResult = $visitorStmt->get_result();
+            $visitorRow = $visitorResult->fetch_assoc();
+            $visitorStmt->close();
+
+            $profileLink = "userprofile.php?id=" . $visit['visitor_id'];
+            $recentVisitsHTML .= '<div class="d-flex align-items-center me-3 mb-2 bg-secondary rounded-pill px-3 py-2"> 
+                                    <a href="' . $profileLink . '">
+                                        <img src="' . 'uploads/profil-fotograflari/' . (!empty($visitorRow['profil_fotografi']) ? $visitorRow['profil_fotografi'] : 'fotoyok.jpg') . '" alt="avatar" class="rounded-circle img-fluid" style="width: 30px;">
+                                    </a>
+                                    <div class="ms-2 text-white">
+                                        <a href="' . $profileLink . '" class="text-white">' . $visitorRow['username'] . '</a>
+                                    </div>
+                                </div>'; 
+        }
+
+        $recentVisitsHTML .= '</div>'; 
+    } else {
+        $recentVisitsHTML .= '<p class="mb-0">Henüz hiç ziyaretçi yok.</p>'; 
+    }
+
+    $recentVisitsHTML .= '</div>';
 
     return '<section style="background-color: #eee;">
           <div class="container py-5">
@@ -185,7 +245,7 @@ function getUserProfileContent($row, $userId) {
                     </div>
                   </div>
                 </div>
-                
+                ' . $recentVisitsHTML . '
               </div>
             </div>
           </div>

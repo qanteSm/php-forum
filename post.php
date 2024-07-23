@@ -40,7 +40,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                         <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="profil.php">' . $username . '</a>
+                        <a class="nav-link" href="userprofile.php?id='.$_SESSION['id'].'">' . $username . '</a>
                     </li>';
 } else {
     $statusbar .= '<li class="nav-item">
@@ -127,6 +127,20 @@ $statusbar .= '</ul>
             $postResult = $stmt->get_result();
 
             if ($postResult->num_rows > 0) {
+                    if (isset($_SESSION['entered']) && $_SESSION['entered'] === true && $_SESSION['id'] && $postId) {
+                        $visitTime = round(microtime(true) * 1000);
+                        $sql = "INSERT INTO post_visits (visitor_id, visited_post_id, tarih) VALUES (?, ?, ?)";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("iii", $_SESSION['id'], $postId, $visitTime);
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+
+                if (isset($_GET['status']) && $_GET['status'] === 'success') {
+                    echo '<div class="alert alert-success" role="alert">
+                            Post başarıyla oluşturuldu!
+                        </div>';
+                }
                 $row = $postResult->fetch_assoc();
 
                 $gecikenSaniye = round(time() - ($row["tarih"] / 1000));
@@ -245,10 +259,26 @@ $statusbar .= '</ul>
                 }
 
             } else {
-                echo "Post bulunamadı.";
+                echo'<div class="container py-5">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1>Geçerli Bİr Post İd Girin! (Post silinmiş olabilir)</h1>
+                <p>Bir post görüntülemek için URLye post idsini ekleyin (örneğin: post.php?post=2).</p>
+            </div>
+        </div>
+    </div>';
             }
 
-        } 
+        } else {
+            echo'<div class="container py-5">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1>Geçerli Bİr Post İd Girin!</h1>
+                <p>Bir post görüntülemek için URLye post idsini ekleyin (örneğin: post.php?post=2).</p>
+            </div>
+        </div>
+    </div>';
+        }
 
         $conn->close();
         ?>
