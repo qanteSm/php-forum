@@ -185,16 +185,6 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                     $yorumSayisi = $rowYorumSayisi['yorum_sayisi'];
                     $stmtYorumSayisi->close();
 
-                    $sqlBegeniSayisi = "SELECT COUNT(*) AS yorum_sayisi FROM post_likes WHERE liked_post = ?";
-                    $stmtBegeniSayisi = $conn->prepare($sqlBegeniSayisi);
-                    $stmtBegeniSayisi->bind_param("i", $postId);
-                    $stmtBegeniSayisi->execute();
-                    $resultBegeniSayisi = $stmtBegeniSayisi->get_result();
-                    $rowBegeniSayisi = $resultBegeniSayisi->fetch_assoc();
-                    $BegeniSayisi = $rowBegeniSayisi['yorum_sayisi'];
-                    $stmtBegeniSayisi->close();
-
-
                     if ($ilkPost) {
                         echo '<div class="col-lg-12"> 
                                 <div class="card row-hover pos-relative py-3 px-3 mb-3 border-warning border-top-0 border-right-0 border-bottom-0 rounded-0">
@@ -208,14 +198,14 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                             <div class="text-sm op-5">';
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
-                            echo '<a class="text-black mr-2" href="tumpostlar.php?etiket='. trim($etiket) . '">  <strong>#' . trim($etiket) . '</strong></a>'; 
+                            echo '<a class="text-black mr-2" href="#">  <strong>#' . trim($etiket) . '</strong></a>'; 
                         }
 
                         echo '</div>
                                         </div>
                                         <div class="col-md-4 op-7">
                                             <div class="row text-center op-7">
-                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $BegeniSayisi . ' Votes</span> </div>
+                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div> 
                                             </div>
@@ -237,14 +227,14 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                             <div class="text-sm op-5">';
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
-                            echo '<a class="text-black mr-2" href="tumpostlar.php?etiket='. trim($etiket) . '">  <strong>#' . trim($etiket) . '</strong></a>';
+                            echo '<a class="text-black mr-2" href="#">  #' . trim($etiket) . '</a>';
                         }
 
                         echo '</div>
                                         </div>
                                         <div class="col-md-4 op-7">
                                             <div class="row text-center op-7">
-                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $BegeniSayisi . ' Votes</span> </div>
+                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div>
                                             </div>
@@ -278,32 +268,9 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
             <div class="item">
                 <div class="card mb-2">
                     <div class="card-body">
-                        <h5 class="card-title">Öne çıkan Postlar    </h5>
+                        <h5 class="card-title">İlgili</h5>
                         <div class="card-text">
-                        <?php
-                            require_once "modules/mysqlconn.php";
-                            $sql = "SELECT p.id, p.baslik, COUNT(r.post_id) AS reply_count
-                            FROM posts p
-                            LEFT JOIN replys r ON p.id = r.post_id
-                            WHERE r.yorum_tarihi >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
-                            GROUP BY p.id
-                            ORDER BY reply_count DESC
-                            LIMIT 4;
-                            ";
-                            $result = $conn->query($sql);
-                            if ($result && $result->num_rows > 0) {
-                                echo "<ul>";
-                                while ($row = $result->fetch_assoc()) {
-                                    $postId = $row["id"];
-                                    $baslik = $row["baslik"];
-                                    $reply_count = $row["reply_count"];
-                                    echo '<li><a href="post.php?post=' . $postId . '" class="d-block mb-2">' . $baslik . '</a></li>';
-                                }
-                                echo "</ul>";
-                            } else {
-                                echo "Son 1 saat içinde yorum alan post bulunamadı.";
-                            }
-                        ?>
+                            <a href="https://alibuyuk.net/" class="d-block mb-2">Ferwle</a> 
                         </div>
                     </div>
                 </div>

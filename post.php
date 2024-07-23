@@ -23,18 +23,9 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     $stmt->close();
 }
 
-function kullaniciBegendiMi($conn, $postId, $userId) {
-    $sql = "SELECT id FROM post_likes WHERE liker_id = ? AND liked_post = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $userId, $postId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    return ($result->num_rows > 0);
-}
-
 $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.php">Forum</a>
+        <a class="navbar-brand" href="#">Forum</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -112,25 +103,7 @@ $statusbar .= '</ul>
     .post-title {
     color: black; 
 }
-/* Kalp ikonları için stiller */
-.like-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-}
-
-.heart-icon {
-    font-size: 1.5em;
-    color: #ccc; /* Varsayılan olarak boş kalp */
-    transition: color 0.3s;
-}
-
-.heart-icon.filled {
-    color: red; /* Dolu kalp */
-}
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
 
@@ -154,7 +127,6 @@ $statusbar .= '</ul>
             $postResult = $stmt->get_result();
 
             if ($postResult->num_rows > 0) {
-
                     if (isset($_SESSION['entered']) && $_SESSION['entered'] === true && $_SESSION['id'] && $postId) {
                         $visitTime = round(microtime(true) * 1000);
                         $sql = "INSERT INTO post_visits (visitor_id, visited_post_id, tarih) VALUES (?, ?, ?)";
@@ -210,17 +182,6 @@ $statusbar .= '</ul>
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
                             echo '<a class="text-black mr-2" href="#">  <strong>#' . trim($etiket) . '</strong></a>'; 
-                        }
-
-                        echo ' | '; 
-
-                        if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
-                            $begeniDurumu = kullaniciBegendiMi($conn, $postId, $_SESSION['id']) ? 'filled' : '';
-                            echo '<button class="like-button" data-post-id="' . $postId . '">
-                                <i class="bi bi-heart-fill heart-icon ' . $begeniDurumu . '"></i>
-                            </button>';
-                        } else {
-                            echo '<i class="bi bi-heart-fill heart-icon"></i>'; 
                         }
         
                         echo '</p> 
@@ -301,8 +262,8 @@ $statusbar .= '</ul>
                 echo'<div class="container py-5">
         <div class="row">
             <div class="col-md-12 text-center">
-                <h1>Geçerli Bir Post ID Girin! (Post silinmiş olabilir)</h1>
-                <p>Bir post görüntülemek için URL\'ye post IDsini ekleyin (örneğin: post.php?post=2).</p>
+                <h1>Geçerli Bİr Post İd Girin! (Post silinmiş olabilir)</h1>
+                <p>Bir post görüntülemek için URLye post idsini ekleyin (örneğin: post.php?post=2).</p>
             </div>
         </div>
     </div>';
@@ -312,8 +273,8 @@ $statusbar .= '</ul>
             echo'<div class="container py-5">
         <div class="row">
             <div class="col-md-12 text-center">
-                <h1>Geçerli Bir Post ID Girin!</h1>
-                <p>Bir post görüntülemek için URL\'ye post IDsini ekleyin (örneğin: post.php?post=2).</p>
+                <h1>Geçerli Bİr Post İd Girin!</h1>
+                <p>Bir post görüntülemek için URLye post idsini ekleyin (örneğin: post.php?post=2).</p>
             </div>
         </div>
     </div>';
@@ -324,52 +285,7 @@ $statusbar .= '</ul>
 
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const likeButtons = document.querySelectorAll('.like-button');
-
-    likeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const postId = button.dataset.postId;
-            const heartIcon = button.querySelector('.heart-icon');
-
-            fetch(`modules/like_post.php`, { 
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: `post_id=${postId}` 
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('HTTP hatası! Durum: ' + response.status);
-                    }
-                    return response.json(); 
-                })
-                .then(data => {
-                    if (data.success) {
-                        heartIcon.classList.toggle('filled');
-                    } else {
-                        console.error('Hata Detayları:', data); n 
-                        let postData = '';
-                        for (const key in data.post) {
-                            postData += `${key}: ${data.post[key]}, `;
-                        }
-                        if (postData) {
-                            postData = postData.slice(0, -2); 
-                        } else {
-                            postData = 'POST verisi yok';
-                        }
-                        alert('Beğeni işlemi başarısız! ' + data.message+' | '+ postData);
-                    }
-                })
-                .catch(error => {
-                    console.error('Hata:', error);
-                    alert('Beğeni işlemi sırasında bir hata oluştu! Lütfen tekrar deneyin.');
-                });
-        });
-    });
-</script>
 </body>
 </html>
