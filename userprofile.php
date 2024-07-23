@@ -3,7 +3,8 @@ session_start();
 
 require_once "modules/mysqlconn.php";
 global $conn;
-
+require_once "modules/ranks.php";
+header('Content-Type: text/html; charset=utf-8'); 
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     $userId = $_SESSION['id'];
 
@@ -22,6 +23,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
         exit();
     }
     $stmt->close();
+}else {
+    $userId = null; 
 }
 
 $targetUsername = isset($_GET['user']) ? $_GET['user'] : '';
@@ -29,7 +32,7 @@ $targetUserId = isset($_GET['id']) ? $_GET['id'] : '';
 
 $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Forum</a>
+        <a class="navbar-brand" href="index.php">Forum</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -135,14 +138,17 @@ if (!empty($targetUsername)) {
 function getUserProfileContent($row, $userId, $conn) {
     global $recentVisitsHTML;
     $profileButton = '';
-    $followButton = '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary">Follow</button>';
-    $messageButton = '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-outline-primary ms-1">Message</button>';
+    $followButton = '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary">Takip Et</button>';
+    $messageButton = '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-outline-primary ms-1">Mesaj</button>';
+    $postsButton = '<a href="tumpostlar.php?fromuser=' . $row['id'] . '" class="btn btn-outline-secondary ms-1">Gönderiler</a>';
 
     if ($userId == $row['id']) {
         $profileButton = '<a href="profil.php" class="btn btn-primary">Profili Özelleştir</a>';
         $followButton = '';
         $messageButton = '';
     }
+
+    $rankName = getRankNameById($conn, $row['id']);
 
     $sql = "SELECT v.visit_time, a.username, a.profil_fotografi, v.visitor_id 
         FROM user_visits v
@@ -173,8 +179,6 @@ function getUserProfileContent($row, $userId, $conn) {
         $recentVisitsHTML .= '<div class="d-flex flex-wrap">'; 
 
         foreach ($recentVisits as $visit) {
-            $visitTime = date("d-m-Y H:i:s", $visit['visit_time'] / 1000);
-
             $visitorSql = "SELECT username, profil_fotografi FROM accounts WHERE id = ?";
             $visitorStmt = $conn->prepare($visitorSql);
             $visitorStmt->bind_param("i", $visit['visitor_id']);
@@ -207,7 +211,7 @@ function getUserProfileContent($row, $userId, $conn) {
               <div class="col">
                 <nav aria-label="breadcrumb" class="bg-body-tertiary rounded-3 p-3 mb-4">
                   <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item active" aria-current="page">User Profile</li>
+                    <li class="breadcrumb-item active" aria-current="page">Kullanıcı Profili</li>
                   </ol>
                 </nav>
               </div>
@@ -220,10 +224,11 @@ function getUserProfileContent($row, $userId, $conn) {
                     <img src="' . 'uploads/profil-fotograflari/' . (!empty($row['profil_fotografi']) ? $row['profil_fotografi'] : 'fotoyok.jpg') . '" alt="avatar"
                       class="rounded-circle img-fluid" style="width: 150px;">
                     <h5 class="my-3">' . $row['username'] . '</h5>
-                    <p class="text-muted mb-1">Moderatör</p>
+                    <p class="text-muted mb-1">' . htmlspecialchars($rankName) . '</p>  <!-- Rütbe bilgisini burada göster -->
                     <div class="d-flex justify-content-center mb-2">
                       ' . $followButton . '
                       ' . $messageButton . '
+                      ' . $postsButton . '
                     </div>
                     ' . $profileButton . '
                   </div>
@@ -297,6 +302,7 @@ function getUserProfileContent($row, $userId, $conn) {
     color: black; 
 }
 </style>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 <body>
 
