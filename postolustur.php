@@ -5,49 +5,15 @@ error_reporting(E_ALL);
 session_start();
 
 require_once "modules/mysqlconn.php";
+require_once "modules/ranks.php"; 
 
 if (!isset($_SESSION['entered']) || $_SESSION['entered'] !== true) {
     header("Location: giris.php"); 
     exit();
 }
-    $userId = $_SESSION['id'];
-    $sql = "SELECT username FROM accounts WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $username = htmlspecialchars($row['username']);
-        $welcomeMessage = "Welcome, " . $username . "!";
-        $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">Forum</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-<li class="nav-item">
-                <a class="nav-link active" href="index.php">Ana Sayfa</a>
-              </li>              <li class="nav-item">
-                <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
-              </li>
-              
-              <li class="nav-item">
-                <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>';
-    } else {
-        session_destroy();
-        header("Location: giris.php?error=error");
-        exit();
-    }
 $userId = $_SESSION['id'];
+$username = ""; 
 
 $sql = "SELECT username FROM accounts WHERE id = ?";
 $stmt = $conn->prepare($sql);
@@ -58,15 +24,40 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     $username = htmlspecialchars($row['username']);
+    $welcomeMessage = "Welcome, " . $username . "!";
+    $statusbar = '
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.php">Forum</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.php">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="userprofile.php?id=' . $userId . '">' . $username . '</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>';
 } else {
-    die("Kullanıcı bulunamadı."); 
+    session_destroy();
+    header("Location: giris.php?error=error");
+    exit();
 }
-
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $baslik = htmlspecialchars($_POST['baslik']);
     $icerik = htmlspecialchars($_POST['icerik']);
     $etiketler = htmlspecialchars($_POST['etiketler_dizi']);
+    $secilenRank = isset($_POST['rank']) ? intval($_POST['rank']) : 0;
 
     if (empty($baslik) || empty($icerik)) {
         $hataMesaji = "Başlık ve içerik alanları boş bırakılamaz.";
@@ -75,35 +66,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } elseif (strlen($icerik) > 200) {
         $hataMesaji = "İçerik en fazla 200 karakter olabilir.";
     } else {
+        $etiketDizisi = explode(",", $etiketler);
 
-    $etiketDizisi = explode(",", $etiketler);
+        $sql = "INSERT INTO posts (baslik, icerik, etiketler, yazar, tarih, post_rank) 
+                VALUES (?, ?, ?, ?, ?, ?)"; 
+        $stmt = $conn->prepare($sql);
+        $simdikiZaman = round(microtime(true) * 1000);
 
-    $sql = "INSERT INTO posts (baslik, icerik, etiketler, yazar, tarih) 
-            VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $simdikiZaman = round(microtime(true) * 1000);
-
-    if ($stmt === false) {
-        echo "Hata: SQL sorgusu hazırlanamadı: " . $conn->error;
-        exit;
-    } else {
-        $stmt->bind_param("sssii", $baslik, $icerik, $etiketler, $userId, $simdikiZaman);
-
-        if ($stmt->execute()) {
-            $yeniPostId = $conn->insert_id;
-            header("Location: post.php?post=".$yeniPostId."&status=success");
-            $basariMesaji = "Forum başarıyla oluşturuldu!";
-            $baslik = "";
-            $icerik = "";
-            $etiketler = "";
+        if ($stmt === false) {
+            echo "Hata: SQL sorgusu hazırlanamadı: " . $conn->error;
+            exit;
         } else {
-            $hataMesaji = "Forum oluşturulurken bir hata oluştu: " . $conn->error;
+            $stmt->bind_param("sssiii", $baslik, $icerik, $etiketler, $userId, $simdikiZaman, $secilenRank);
+
+            if ($stmt->execute()) {
+                $yeniPostId = $conn->insert_id;
+                header("Location: post.php?post=" . $yeniPostId . "&status=success");
+                $basariMesaji = "Forum başarıyla oluşturuldu!";
+                $baslik = "";
+                $icerik = "";
+                $etiketler = "";
+            } else {
+                $hataMesaji = "Forum oluşturulurken bir hata oluştu: " . $conn->error;
+            }
         }
-        $stmt->close();
-    }
     }
 }
-$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -159,6 +147,26 @@ $conn->close();
                     <input type="text" class="form-control" id="etiketler" name="etiketler" value="<?php echo isset($etiketler) ? $etiketler : ''; ?>">
                     <div id="etiketler-container"></div>
                 </div>
+
+        <?php
+            $userRankLevel = getRankLevelById($conn, $userId);
+            if ($userRankLevel > 0) {
+                echo '<div class="mb-3">';
+                echo '<label for="rank" class="form-label">Post Rankı:</label>';
+                echo '<select class="form-select" id="rank" name="rank">';
+                echo '<option value="0">Herkese Açık</option>'; 
+
+                $sql = "SELECT rank_level, rank_name FROM Ranks WHERE rank_level > 0";
+                $result = $conn->query($sql);
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        echo '<option value="' . $row["rank_level"] . '">' . $row["rank_name"] . '</option>';
+                    }
+                }
+                echo '</select>';
+                echo '</div>';
+            }
+        ?>
                 <button type="submit" class="btn btn-primary">Forum Oluştur</button>
             </form>
         </div> 

@@ -1,9 +1,10 @@
+
 <?php
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST["username"];
     $password = $_POST["password"];
-    
+
     if (empty($username) || empty($password)) {
         header("Location: giris.php?error=empty");
     } else {
@@ -21,21 +22,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if($stored_hash != $hashedenteredpw){
                 header("Location: giris.php?error=wrongpass");
             }else{
-                if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
-                    header("Location: index.php");
-                    exit(); 
-                } else {
-                    header("Location: giris.php?success=true");
-                    session_start();
-                    $_SESSION["entered"] = true;
-                    $_SESSION["id"] = $row['id'];
-                    header("Location: index.php");
-                }
+                session_start();
+                $_SESSION["entered"] = true;
+                $_SESSION["id"] = $row['id'];
+
+                $yonlendirmeURL = isset($_POST['yonlendirme_url']) ? $_POST['yonlendirme_url'] : "index.php";
+
+                header("Location: " . $yonlendirmeURL);
+                exit();
             }
         } else {
             header("Location: giris.php?error=nouser");
         }
-       
+
         exit();
     }
 }

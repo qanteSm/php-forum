@@ -19,13 +19,12 @@ function getRankNameById($conn, $user_id) {
     return "Kullanıcı bulunamadı.";
   }
 
-  $stmt->close();
 }
 
 function getRankLevelById($conn, $user_id) {
     $sql = "SELECT r.rank_level 
             FROM accounts u
-            JOIN Ranks r ON u.rank_id = r.id
+            JOIN Ranks r ON u.rank = r.rank_level
             WHERE u.id = ?";
   
     $stmt = $conn->prepare($sql);
@@ -40,7 +39,6 @@ function getRankLevelById($conn, $user_id) {
     } else {
       return "Kullanıcı bulunamadı.";
     }
-  
-    $stmt->close();
+   
   }
 ?>

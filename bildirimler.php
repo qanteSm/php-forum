@@ -22,7 +22,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
 
         $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#">Forum</a>
+          <a class="navbar-brand" href="index.php">Forum</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -65,6 +65,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
 <meta charset="utf-8">
 <title>Ferwle's Forum</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
 <style type="text/css">
@@ -88,6 +89,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
         font-weight: 700 !important;
     }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> 
 </head>
 <body>
 <?php echo $statusbar; ?>
@@ -99,7 +102,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
       <div class="mt-3">
         <?php
         require_once "modules/mysqlconn.php";
-        $sql = "SELECT DISTINCT content, MAX(created_at) as latest_created_at, link,maker_id FROM notifications WHERE user_id = ? GROUP BY content, link ORDER BY latest_created_at DESC";
+        $sql = "SELECT DISTINCT content, MAX(created_at) as latest_created_at, link, maker_id, type FROM notifications WHERE user_id = ? GROUP BY content, link ORDER BY latest_created_at DESC";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $userId);
         $stmt->execute();
@@ -123,14 +126,43 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                         $username = "Bilinmeyen Kullanıcı"; 
                         $girenadaminid = 0; 
                     }
-                echo '<div class="card mb-2">
-                        <div class="card-body">
-                          <p><a href="' . $row['link'] . '" class="text-decoration-none" style="font-weight: bold;">' . $row['content'] . '</a></p> 
-                          <small class="text-muted">' . $row['latest_created_at'] . ' 
-                          <a href="userprofile.php?id='.$girenadaminid.'" class="text-decoration-none" style="color: black;"> - '.$username.'</a>
-                          </small>
+                    $ikon = '';
+                    if ($row['type'] == 1){
+                      $ikon = '<i class="bi bi-person-add fs-2 text-primary"></i>'; 
+                    }elseif ($row['type'] == 3) {
+                        $ikon = '<i class="bi bi-heart-fill text-danger fs-2"></i>'; 
+                    } elseif ($row['type'] == 2) {
+                        $ikon = '<i class="bi bi-chat-left-text fs-2"></i>'; 
+                    }
+    
+                    echo '<div class="card mb-2">
+                      <div class="card-body">
+                          <div class="d-flex align-items-center">
+                              <div class="me-2">' . $ikon . '</div>
+                              <div>
+                                  <a href="' . $row['link'] . '" class="text-decoration-none">
+                                      <h6 class="mb-1">' . $row['content'] . '</h6> 
+                                  </a>
+                                  <small class="text-muted">' . $row['latest_created_at'] . ' 
+                                  <a href="userprofile.php?id='.$girenadaminid.'" class="text-decoration-none" style="color: black;"> - '.$username.'</a>
+                                  </small>
+                              </div>
+                          </div>
+                      </div>
+                  </div>';
+                  /*echo '<div class="card mb-2">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">' . $ikon . '</div> 
+                        <div>
+                            <p><a href="' . $row['link'] . '" class="text-decoration-none" style="font-weight: bold;">' . $row['content'] . '</a></p>
+                            <small class="text-muted">' . $row['latest_created_at'] . ' 
+                            <a href="userprofile.php?id='.$girenadaminid.'" class="text-decoration-none" style="color: black;"> - '.$username.'</a>
+                            </small>
                         </div>
-                      </div>';
+                    </div>
+                  </div>
+                </div>';*/
             }
         } else {
             echo "<p>Henüz bildiriminiz yok.</p>";

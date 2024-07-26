@@ -5,6 +5,8 @@ session_start();
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     header("Location: index.php");
     exit(); 
+}else {
+  $yonlendirmeURL = isset($_GET['yonlendirme_url']) ? htmlspecialchars($_GET['yonlendirme_url']) : "index.php"; 
 }
 
 ?>
@@ -91,6 +93,7 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
           </div>
           <?php endif; ?>
           <form action="giriscodes.php" method="POST">
+            <input type="hidden" name="yonlendirme_url" value="<?php echo $yonlendirmeURL; ?>">
             <div class="mb-3">
               <label for="username" class="form-label">Username</label>
               <input type="text" class="form-control" id="username" name="username" placeholder="Username giriniz">

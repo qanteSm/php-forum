@@ -3,7 +3,8 @@ session_start();
 
 if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     $userId = $_SESSION['id'];
-
+    require_once "modules/ranks.php"; 
+    
     require_once "modules/mysqlconn.php";
     $sql = "SELECT username FROM accounts WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -15,6 +16,18 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
         $row = $result->fetch_assoc();
         $username = htmlspecialchars($row['username']);
         $welcomeMessage = "Welcome, " . $username . "!";
+
+        $userId = $_SESSION['id'];
+        $sqlNotifications = "SELECT COUNT(DISTINCT content) AS unread_count FROM notifications WHERE user_id = ? AND read_at IS NULL";
+        $stmtNotifications = $conn->prepare($sqlNotifications);
+        $stmtNotifications->bind_param("i", $userId);
+        $stmtNotifications->execute();
+        $resultNotifications = $stmtNotifications->get_result();
+        $rowNotifications = $resultNotifications->fetch_assoc();
+        $unreadCount = $rowNotifications['unread_count'];
+
+        $notificationClass = $unreadCount > 0 ? 'text-primary' : 'text-secondary'; 
+
         $statusbar = '<nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
           <a class="navbar-brand" href="#">Forum</a>
@@ -23,18 +36,21 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-<li class="nav-item">
-                <a class="nav-link active" href="index.php">Ana Sayfa</a>
-              </li>              <li class="nav-item">
-                <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
-              </li>
-              <li class="nav-item">
+              <li class="nav-item user-notification-wrapper">
+              <a class="nav-link active" href="index.php">Ana Sayfa</a>
+              <a class="nav-link" href="modules/cikis.php">Çıkış Yap</a>
+              
                 <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
-              </li>
+                <a class="nav-link ' . $notificationClass . '" href="bildirimler.php">
+                    <i class="ion-ios-bell-outline ' . $notificationClass . ' icon-1x"></i>
+                    ' . ($unreadCount > 0 ? '<span class="badge bg-primary">' . $unreadCount . '</span>' : '') . '
+                </a>
+                </li>
             </ul>
           </div>
         </div>
       </nav>';
+      $stmtNotifications->close();
     } else {
         session_destroy();
         header("Location: giris.php?error=error");
@@ -94,6 +110,25 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
     .font-weight-bold {
         font-weight: 700 !important;
     }
+    .user-notification-wrapper {
+    display: flex; 
+    align-items: center; 
+    }
+
+    .user-notification-wrapper .nav-link {
+    margin-right: 10px; 
+    display: flex; 
+    align-items: center; 
+    }
+
+    .user-notification-wrapper .nav-link i {
+    font-size: 1rem; 
+    }
+
+    .user-notification-wrapper .nav-link .badge {
+    font-size: 0.8rem; 
+    margin-left: 5px; 
+    }
 </style>
 </head>
 <body>
@@ -121,8 +156,22 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
       <div class="row">
   <?php
         require_once "modules/mysqlconn.php";
-        $sql = "SELECT * FROM posts ORDER BY id DESC LIMIT 5";
-        $result = $conn->query($sql);
+        require_once "modules/ranks.php";
+        if(isset($_SESSION['entered']) && $_SESSION['entered'] === true && $_SESSION['id']){
+
+            $userRankLevel = getRankLevelById($conn, $_SESSION['id']);
+        } else {
+            $userRankLevel = 0;
+        }
+        $sql = "SELECT * 
+        FROM posts
+        WHERE post_rank <= ? 
+        ORDER BY id DESC 
+        LIMIT 5";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $userRankLevel); 
+        $stmt->execute();
+        $result = $stmt->get_result();
 
         if ($result) {
             if ($result->num_rows > 0) {
@@ -185,6 +234,16 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                     $yorumSayisi = $rowYorumSayisi['yorum_sayisi'];
                     $stmtYorumSayisi->close();
 
+                    $sqlBegeniSayisi = "SELECT COUNT(*) AS yorum_sayisi FROM post_likes WHERE liked_post = ?";
+                    $stmtBegeniSayisi = $conn->prepare($sqlBegeniSayisi);
+                    $stmtBegeniSayisi->bind_param("i", $postId);
+                    $stmtBegeniSayisi->execute();
+                    $resultBegeniSayisi = $stmtBegeniSayisi->get_result();
+                    $rowBegeniSayisi = $resultBegeniSayisi->fetch_assoc();
+                    $BegeniSayisi = $rowBegeniSayisi['yorum_sayisi'];
+                    $stmtBegeniSayisi->close();
+
+
                     if ($ilkPost) {
                         echo '<div class="col-lg-12"> 
                                 <div class="card row-hover pos-relative py-3 px-3 mb-3 border-warning border-top-0 border-right-0 border-bottom-0 rounded-0">
@@ -198,14 +257,14 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                             <div class="text-sm op-5">';
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
-                            echo '<a class="text-black mr-2" href="#">  <strong>#' . trim($etiket) . '</strong></a>'; 
+                            echo '<a class="text-black mr-2" href="tumpostlar.php?etiket='. trim($etiket) . '">  <strong>#' . trim($etiket) . '</strong></a>'; 
                         }
 
                         echo '</div>
                                         </div>
                                         <div class="col-md-4 op-7">
                                             <div class="row text-center op-7">
-                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
+                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $BegeniSayisi . ' Votes</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div> 
                                             </div>
@@ -227,14 +286,14 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                                             <div class="text-sm op-5">';
                         $etiketler = explode(',', $row["etiketler"]);
                         foreach ($etiketler as $etiket) {
-                            echo '<a class="text-black mr-2" href="#">  #' . trim($etiket) . '</a>';
+                            echo '<a class="text-black mr-2" href="tumpostlar.php?etiket='. trim($etiket) . '">  <strong>#' . trim($etiket) . '</strong></a>';
                         }
 
                         echo '</div>
                                         </div>
                                         <div class="col-md-4 op-7">
                                             <div class="row text-center op-7">
-                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $row["begeniler"] . ' Votes</span> </div>
+                                                <div class="col px-1"> <i class="ion-connection-bars icon-1x"></i> <span class="d-block text-sm">' . $BegeniSayisi . ' Votes</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-chatboxes-outline icon-1x"></i> <span class="d-block text-sm">' . $yorumSayisi . ' Replys</span> </div>
                                                 <div class="col px-1"> <i class="ion-ios-eye-outline icon-1x"></i> <span class="d-block text-sm">' . $goruntulemeSayisi . ' Views</span> </div>
                                             </div>
@@ -268,9 +327,32 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
             <div class="item">
                 <div class="card mb-2">
                     <div class="card-body">
-                        <h5 class="card-title">İlgili</h5>
+                        <h5 class="card-title">Öne çıkan Postlar    </h5>
                         <div class="card-text">
-                            <a href="https://alibuyuk.net/" class="d-block mb-2">Ferwle</a> 
+                        <?php
+                            require_once "modules/mysqlconn.php";
+                            $sql = "SELECT p.id, p.baslik, COUNT(r.post_id) AS reply_count
+                            FROM posts p
+                            LEFT JOIN replys r ON p.id = r.post_id
+                            WHERE r.yorum_tarihi >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                            GROUP BY p.id
+                            ORDER BY reply_count DESC
+                            LIMIT 4;
+                            ";
+                            $result = $conn->query($sql);
+                            if ($result && $result->num_rows > 0) {
+                                echo "<ul>";
+                                while ($row = $result->fetch_assoc()) {
+                                    $postId = $row["id"];
+                                    $baslik = $row["baslik"];
+                                    $reply_count = $row["reply_count"];
+                                    echo '<li><a href="post.php?post=' . $postId . '" class="d-block mb-2">' . $baslik . '</a></li>';
+                                }
+                                echo "</ul>";
+                            } else {
+                                echo "Son 1 saat içinde yorum alan post bulunamadı.";
+                            }
+                        ?>
                         </div>
                     </div>
                 </div>
