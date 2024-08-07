@@ -37,11 +37,6 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
               <li class="nav-item">
                 <a class="nav-link" href="userprofile.php?id='.$userId.'">' . $username . '</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link text-secondary" href="bildirimler.php">
-                  <i class="ion-ios-bell-outline icon-1x text-secondary"></i>
-                </a>
-              </li>
             </ul>
           </div>
         </div>
@@ -133,6 +128,8 @@ if (isset($_SESSION['entered']) && $_SESSION['entered'] === true) {
                         $ikon = '<i class="bi bi-heart-fill text-danger fs-2"></i>'; 
                     } elseif ($row['type'] == 2) {
                         $ikon = '<i class="bi bi-chat-left-text fs-2"></i>'; 
+                    }elseif ($row['type'] == 4) {
+                        $ikon = '<i class="bi bi-at fs-2"></i>'; 
                     }
     
                     echo '<div class="card mb-2">

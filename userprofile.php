@@ -169,7 +169,7 @@ function getFollowersOrFollowing($row, $userId, $conn, $showFollowers, $showFoll
             if ($isFollowing) {
                 $followButton = '<button id="followButton' . $row['id'] . '" type="button" data-user-id="' . $row['id'] . '" class="btn btn-light" onclick="toggleFollow(' . $row['id'] . ')">Takip Ediliyor</button>';
             } else {
-                $followButton = '<button id="followButton' . $row['id'] . '" type="button" data-user-id="' . $row['id'] . '" class="btn btn-primary" onclick="toggleFollow(' . $row['id'] . ')">Takip Et</button>';
+                $followButton = '<button id="followButton' . $row['id'] . '" type="button" data-user-id="' . $row['id'] . '" class="btn btn-primary" onclick="toggleFollow(' . $row['id'] . ')">Takip Et</button>'; 
             }
 
             $messageButton = $userId ? '<button  type="button" data-mdb-button-init data-mdb-ripple-init class="btn btn-outline-primary ms-1">Mesaj</button>' : '';
@@ -454,6 +454,7 @@ function getFollowingCount($conn, $userId) {
             }
         };
         xhr.send("followedId=" + followedId);
+    }
     
 </script>
 </body>

@@ -1,4 +1,3 @@
-
 <?php
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -25,6 +24,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 session_start();
                 $_SESSION["entered"] = true;
                 $_SESSION["id"] = $row['id'];
+
+                if (isset($_POST['remember_me'])) {
+                    $selector = base64_encode(random_bytes(9));
+                    $authenticator = random_bytes(33);
+                    $hashedAuthenticator = hash('sha256', $authenticator);
+                    setcookie('remember_me', $selector . ':' . base64_encode($authenticator), time() + 86400 * 30, '/');
+
+                    $sql = "INSERT INTO auth_tokens (selector, token, user_id) VALUES (?, ?, ?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ssi", $selector, $hashedAuthenticator, $row['id']);
+                    $stmt->execute();
+                }
 
                 $yonlendirmeURL = isset($_POST['yonlendirme_url']) ? $_POST['yonlendirme_url'] : "index.php";
 
