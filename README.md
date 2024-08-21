@@ -13,12 +13,15 @@ Projeyi canlı olarak şu adreste deneyebilirsiniz: [forum.alibuyuk.net](https:/
 * **Konu Açma/Cevaplama:** Kullanıcılar forum kategorileri altında yeni konular açabilir ve mevcut konulara cevap yazabilir.
 * **Konu Beğenme:** Kullanıcıların açtığı konuları beğenebilirsiniz.
 * **Kullanıcı Takibi:** Kullanıcıları takip edip takipten çıkabilirsiniz.
-
-**Planlanan Özellikler:**
-
 * **Bildirim Sistemi:** Yeni mesajlar ve cevaplar için bildirimler.
 * **Kullanıcı Profilleri:** Daha detaylı kullanıcı profilleri ve özelleştirme seçenekleri.
 * **Arama İşlevi:** Forumda içerik arama.
+**Ve Dahası!**
+  
+**Planlanan Özellikler:**
+* **Özel Mesajlaşma:** Forum içersinde kullanıcılar birbiri ile özel mesajlaşabilecekler.
+* **Daha Kapsamlı Forum Cevaplama/Oluşturma:** Forum oluştururken bold gibi stiller eklenecek, kullanıcı etiketleme daha kolay bir hale gelecek.
+
 
 **Katkıda Bulunma:**
 
