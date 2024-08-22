@@ -139,8 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $hataMesaji = "Başlık ve içerik alanları boş bırakılamaz.";
     } elseif (strlen($baslik) > 50) {
         $hataMesaji = "Başlık en fazla 50 karakter olabilir.";
-    } elseif (strlen($icerik) > 200) {
-        $hataMesaji = "İçerik en fazla 200 karakter olabilir.";
+    } elseif (strlen($icerik) > 500) {
+        $hataMesaji = "İçerik en fazla 500 karakter olabilir.";
     } else {
         
         $etiketDizisi = explode(",", $etiketler);
